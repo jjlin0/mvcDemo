@@ -23,9 +23,7 @@ public class UserServiceTest {
 
     @Test
     public void test01() {
-        System.out.println("1");
         List<User> all = userService.getAll();
-        System.out.println("2");
         for (User user : all) {
             System.out.println(user);
         }

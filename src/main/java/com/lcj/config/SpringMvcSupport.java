@@ -17,5 +17,6 @@ public class SpringMvcSupport extends WebMvcConfigurationSupport {
         registry.addResourceHandler("/js/**").addResourceLocations("/js/");
         registry.addResourceHandler("/css/**").addResourceLocations("/css/");
         registry.addResourceHandler("/plugins/**").addResourceLocations("/plugins/");
+        registry.addResourceHandler("/element-ui/**").addResourceLocations("/element-ui/");
     }
 }

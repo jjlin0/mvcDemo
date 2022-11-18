@@ -49,7 +49,6 @@ public class UserController {
 
     @GetMapping
     public Result getAll() {
-        int i=1/0;
         List<User> userList = userService.getAll();
         Integer code = userList != null ? GET_OK : GET_ERR;
         String msg = userList != null ? "" : "查询失败,请重试!";

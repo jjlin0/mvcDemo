@@ -1,7 +1,9 @@
 package com.lcj.service.impl;
 
+import com.lcj.controller.Code;
 import com.lcj.dao.UserDao;
 import com.lcj.domain.User;
+import com.lcj.exception.BusinessException;
 import com.lcj.service.UserService;
 import org.springframework.stereotype.Service;
 
@@ -41,6 +43,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User getById(Integer id) {
+        if(id<0){
+            throw new BusinessException(Code.BUSINESS_ERR,"id数据错误,请重新输入");
+        }
         return userDao.getById(id);
     }
 

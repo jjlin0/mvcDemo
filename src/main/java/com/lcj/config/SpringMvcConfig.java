@@ -10,7 +10,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
  * @date: 2022/11/17
  */
 @Configuration
-@ComponentScan("com.lcj.controller")
+@ComponentScan({"com.lcj.controller","com.lcj.config"})
 @EnableWebMvc
 public class SpringMvcConfig {
 }

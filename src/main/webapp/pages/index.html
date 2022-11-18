@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <title>vue</title>
+    <style>
+        .el-table .warning-row {
+            background: oldlace;
+        }
+
+        .el-table .success-row {
+            background: #f0f9eb;
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+
+    <!--搜索表单-->
+    <el-form :inline="true" :model="brandSearch" class="demo-form-inline">
+
+        <el-form-item label="当前状态">
+            <el-select v-model="brandSearch.status" placeholder="当前状态" value="">
+                <el-option label="启用" value="1"></el-option>
+                <el-option label="禁用" value="0"></el-option>
+            </el-select>
+        </el-form-item>
+
+        <el-form-item label="企业名称">
+            <el-input v-model="brandSearch.companyName" placeholder="企业名称"></el-input>
+        </el-form-item>
+
+        <el-form-item label="品牌名称">
+            <el-input v-model="brandSearch.brandName" placeholder="品牌名称"></el-input>
+        </el-form-item>
+
+        <el-form-item>
+            <el-button type="primary" @click="onSubmit">查询</el-button>
+        </el-form-item>
+    </el-form>
+
+    <!--按钮-->
+
+    <el-row>
+
+        <el-button plain type="danger">批量删除</el-button>
+        <el-button plain type="primary" @click="addOrUpdate=true;dialogVisible = true">新增</el-button>
+
+    </el-row>
+    <!--添加数据对话框表单-->
+    <el-dialog
+            :visible.sync="dialogVisible"
+            @close='brandForm={}'
+            title="编辑品牌"
+            width="30%"
+    >
+
+        <el-form ref="brandForm" v-model="brandForm" label-width="80px">
+            <el-form-item>
+                <el-input :model="brandForm.id" style="display: none"></el-input>
+            </el-form-item>
+
+            <el-form-item label="品牌名称">
+                <el-input v-model="brandForm.brandName"></el-input>
+            </el-form-item>
+
+            <el-form-item label="企业名称">
+                <el-input v-model="brandForm.companyName"></el-input>
+            </el-form-item>
+
+            <el-form-item label="slogan">
+                <el-input v-model="brandForm.slogan"></el-input>
+            </el-form-item>
+
+            <el-form-item label="备注">
+                <el-input v-model="brandForm.remarks" type="textarea"></el-input>
+            </el-form-item>
+
+            <el-form-item label="状态">
+                <el-switch v-model="brandForm.status "
+                           active-value="1"
+                           inactive-value="0"
+                ></el-switch>
+            </el-form-item>
+
+
+            <el-form-item>
+                <el-button v-if="addOrUpdate" type="primary" @click="addBrand()">提交</el-button>
+                <el-button v-if="!addOrUpdate" type="primary" @click="updateBrand();">提交</el-button>
+                <el-button @click="brandForm={};dialogVisible = false;">取消</el-button>
+            </el-form-item>
+        </el-form>
+
+    </el-dialog>
+
+
+    <!--表格-->
+    <template>
+        <el-table
+                :data="tableData"
+                :row-class-name="tableRowClassName"
+                style="width: 100%"
+                @selection-change="handleSelectionChange">
+            <el-table-column
+                    type="selection"
+                    width="55">
+            </el-table-column>
+
+            <el-table-column
+                    type="index"
+                    width="50">
+            </el-table-column>
+
+            <el-table-column
+                    align="center"
+                    label="品牌名称"
+                    prop="brandName"
+            >
+            </el-table-column>
+            <el-table-column
+                    align="center"
+                    label="企业名称"
+                    prop="companyName"
+            >
+            </el-table-column>
+            <el-table-column
+                    align="center"
+                    label="企业slogan"
+                    prop="slogan">
+            </el-table-column>
+            <el-table-column
+                    align="center"
+                    label="备注"
+                    prop="remarks">
+            </el-table-column>
+            <el-table-column
+                    align="center"
+                    label="当前状态"
+                    prop="status">
+                <el-row slot-scope="scope">
+                    <span>{{
+                            scope.row.status === 0 ? "禁用" : scope.row.status === 1 ? "启用" : "未知"
+                        }}</span>
+                </el-row>
+            </el-table-column>
+
+
+            <el-table-column
+                    align="center"
+                    label="操作">
+
+                <el-row slot-scope="scope">
+                    <el-button type="primary" @click="dataEcho(scope.row);addOrUpdate=false;dialogVisible = true;">
+                        修改
+                    </el-button>
+                    <el-button type="danger" @click="delBrand(scope.row)">删除</el-button>
+                </el-row>
+
+            </el-table-column>
+
+        </el-table>
+    </template>
+
+    <!--分页工具条-->
+    <el-pagination
+            :current-page=currentPage
+            :page-size=pageSize
+            :page-sizes="[5, 10, 15, 20]"
+            :total="totalCount"
+            layout="total, sizes, prev, pager, next, jumper"
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange">
+    </el-pagination>
+
+</div>
+
+<script src="../js/vue.js"></script>
+<script src="../js/axios.js"></script>
+<script src="../element-ui/lib/index.js"></script>
+<link href="../element-ui/lib/theme-chalk/index.css" rel="stylesheet">
+
+<script>
+    let vm = new Vue({
+            el: "#app",
+
+            mounted() {
+                //当页面加载完成后，发送异步请求，获取数据
+                this.getBrandsByPage();
+            },
+
+            methods: {
+                // 根据页码查询数据
+                getBrandsByPage() {
+                    let _this = this;
+                    axios({
+                        method: "get",
+                        url: "http://localhost:8080/brands/" + _this.currentPage + "/" + _this.pageSize
+                    }).then(function (resp) {
+                        _this.tableData = resp.data.data.rows;
+                        _this.totalCount = resp.data.data.totalCount;
+                    })
+                },
+
+                //行背景变色
+                tableRowClassName({rowIndex}) {
+                    if ((rowIndex - 3) % 4 === 0) {
+                        return 'success-row';
+                    } else if ((rowIndex - 1) % 2 === 0) {
+                        return 'warning-row';
+                    }
+                    return '';
+                },
+                // 复选框选中后执行的方法
+                handleSelectionChange(val) {
+                    this.multipleSelection = val;
+
+                    console.log(this.multipleSelection)
+                },
+                // 搜索查询方法
+                onSubmit() {
+                    console.log(this.brandSearch.status);
+
+                    //数据库查询
+                    let _this = this;
+                    axios({
+                        method: "get",
+                        url: "http://localhost:8080/brands/" + _this.brandSearch.status + "/" +
+                            _this.brandSearch.companyName+ "/" + _this.brandSearch.brandName
+                    }).then(function (resp) {
+                        _this.tableData = resp.data.data.rows;
+                        _this.totalCount = resp.data.data.totalCount;
+                    })
+
+                    //清空表单
+                    this.brandSearch = {};
+                },
+                // 添加数据
+                addBrand() {
+                    let _this = this;
+                    // 发送ajax请求，添加数据
+                    axios({
+                        method: "post",
+                        url: "http://localhost:8080/brands",
+                        data: _this.brandForm
+                    }).then(function (resp) {
+                        if (resp.data.data === true) {
+                            //添加成功弹出消息提示
+                            _this.$message({
+                                message: '恭喜你，添加成功',
+                                type: 'success'
+                            });
+                        } else {
+                            _this.$message.error('添加失败!');
+                        }
+                        //关闭窗口
+                        _this.dialogVisible = false;
+                        //清除表格
+                        _this.brandForm = {};
+                        // 重新查询数据
+                        _this.getBrandsByPage();
+                    })
+                },
+                //数据回显
+                dataEcho(row) {
+                    this.brandForm = row;
+                }
+                ,
+                //更新数据
+                updateBrand() {
+                    let _this = this;
+                    // 发送ajax请求，添加数据
+                    axios({
+                        method: "put",
+                        url: "http://localhost:8080/brands",
+                        data: _this.brandForm
+                    }).then(function (resp) {
+                        console.log(resp);
+                        if (resp.data.data === true) {
+                            //添加成功弹出消息提示
+                            _this.$message({
+                                message: '恭喜你，更新成功',
+                                type: 'success'
+                            });
+                        } else {
+                            _this.$message.error('更新失败!');
+                        }
+                        //关闭窗口
+                        _this.dialogVisible = false;
+                        //清除表格数据
+                        _this.brandForm = {};
+                        // 重新查询数据
+                        _this.getBrandsByPage();
+                    })
+                },
+                //删除数据
+                delBrand(row) {
+                    let _this = this;
+                    //弹窗确认
+                    this.$confirm('此操作将删除该数据, 是否继续?', '提示', {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                        type: 'warning'
+                    }).then(() => {
+                        // 发送ajax请求，添加数据
+                        axios({
+                            method: "delete",
+                            url: "http://localhost:8080/brands/"+row.id
+                        }).then(function (resp) {
+                            if (resp.data.data === true) {
+                                //添加成功弹出消息提示
+                                _this.$message({
+                                    message: '恭喜你，删除成功',
+                                    type: 'success'
+                                });
+                            } else {
+                                _this.$message.error('删除失败!');
+                            }
+                            //关闭窗口
+                            _this.dialogVisible = false;
+                            // 重新查询数据
+                            _this.getBrandsByPage();
+                        })
+                    }).catch(() => {
+                        this.$message({
+                            type: 'info',
+                            message: '已取消删除'
+                        });
+                    })
+                },
+
+                //每页显示条数
+                handleSizeChange(val) {
+                    console.log(`每页 ${val} 条`);
+                    this.pageSize = val;
+                    this.getBrandsByPage();
+                }
+                ,
+                //当前页码
+                handleCurrentChange(val) {
+                    console.log(`当前页: ${val}`);
+                    this.currentPage = val;
+                    this.getBrandsByPage();
+                }
+                ,
+            },
+            data() {
+                return {
+                    // 当前页码
+                    currentPage: 1,
+                    //默认显示条数
+                    pageSize: 5,
+                    //总数条数
+                    totalCount: 0,
+                    // 添加数据对话框是否展示的标记
+                    dialogVisible: false,
+                    //判断是更新还是删除,调用不同方法框
+                    addOrUpdate: true,
+                    // 品牌模型数据
+                    brand: {
+                        id: "",
+                        brandName: '',
+                        companyName: '',
+                        slogan: "",
+                        remarks: "",
+                        status: ''
+                    },
+                    //修改与更新的表单模型数据
+                    brandForm: {
+                        id: "",
+                        brandName: '',
+                        companyName: '',
+                        slogan: "",
+                        remarks: "",
+                        status: ''
+                    },
+                    //搜索表单的模型数据
+                    brandSearch: {
+                        status: '',
+                        brandName: '',
+                        companyName: ''
+                    },
+                    // 复选框选中数据集合
+                    multipleSelection: [],
+                    // 表格数据
+                    tableData: []
+                }
+            }
+        })
+    ;
+</script>
+
+</body>
+
+</html>
