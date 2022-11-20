@@ -16,14 +16,14 @@ import java.util.List;
 public interface BrandDao {
     //新增Brand
     @Insert("insert into brand (brandName, companyName,slogan,remarks,status) values (#{brandName},#{companyName},#{slogan},#{remarks},#{status})")
-    void addBrand(Brand brand);
+    int addBrand(Brand brand);
 
     //修改用户
     @Update("update brand set brandName=#{brandName},companyName=#{companyName},slogan=#{slogan},remarks=#{remarks},status=#{status} where id=#{id}")
-    void updateBrand(Brand brand);
+    int updateBrand(Brand brand);
 
     @Delete("delete from brand where id=#{id}")
-    void deleteBrand(Integer id);
+    int deleteBrand(Integer id);
 
     //查询数据总条数
     @Select("select count(*) from brand")

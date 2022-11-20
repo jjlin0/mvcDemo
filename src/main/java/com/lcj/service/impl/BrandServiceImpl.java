@@ -19,25 +19,23 @@ import java.util.List;
 public class BrandServiceImpl implements BrandService {
     @Resource
     BrandDao brandDao;
+
     @Override
     public boolean addBrand(Brand brand) {
-        brandDao.addBrand(brand);
-        return true;
+        return brandDao.addBrand(brand) > 0;
     }
 
     @Override
     public boolean updateBrand(Brand brand) {
-        brandDao.updateBrand(brand);
-        return true;
+        return brandDao.updateBrand(brand) > 0;
     }
 
     @Override
     public boolean deleteBrand(Integer id) {
-        if(id<0){
-            throw new BusinessException(Code.BUSINESS_ERR,"id数据错误,请重新输入");
+        if (id < 0) {
+            throw new BusinessException(Code.BUSINESS_ERR, "id数据错误,请重新输入");
         }
-        brandDao.deleteBrand(id);
-        return true;
+        return brandDao.deleteBrand(id) > 0;
     }
 
     @Override

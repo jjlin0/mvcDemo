@@ -25,26 +25,23 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean save(User user) {
-        userDao.save(user);
-        return true;
+        return userDao.save(user) > 0;
     }
 
     @Override
     public boolean update(User user) {
-        userDao.update(user);
-        return true;
+        return userDao.update(user) > 0;
     }
 
     @Override
     public boolean delete(Integer id) {
-        userDao.delete(id);
-        return true;
+        return userDao.delete(id) > 0;
     }
 
     @Override
     public User getById(Integer id) {
-        if(id<0){
-            throw new BusinessException(Code.BUSINESS_ERR,"id数据错误,请重新输入");
+        if (id < 0) {
+            throw new BusinessException(Code.BUSINESS_ERR, "id数据错误,请重新输入");
         }
         return userDao.getById(id);
     }

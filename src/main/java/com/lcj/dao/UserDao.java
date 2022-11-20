@@ -17,13 +17,13 @@ import java.util.List;
 @Repository
 public interface UserDao {
     @Insert("insert into user value (null,#{username},#{password},#{name})")
-    void save(User user);
+    int save(User user);
 
     @Update("update user set username=#{username},password=#{password},name=#{name} where id=#{id}")
-    void update(User user);
+    int update(User user);
 
     @Delete("delete from user where id=#{id}")
-    void delete(Integer id);
+    int delete(Integer id);
 
     @Select("select * from user where id=#{id}")
     User getById(Integer id);
